@@ -1,129 +1,257 @@
 {
-    "privileges": [],
-    "dataRoles": [
-        {
-            "name": "Rows",
-            "displayName": "Rows",
-            "displayNameKey": "Visual_Rows",
-            "kind": "Grouping"
-        },
-        {
-            "name": "Columns",
-            "displayName": "Columns",
-            "displayNameKey": "Visual_Columns",
-            "kind": "Grouping"
-        },
-        {
-            "name": "Value",
-            "displayName": "Value",
-            "displayNameKey": "Visual_Values",
-            "kind": "Measure"
-        }
-    ],
-    "dataViewMappings": [
-        {
-            "matrix": {
-                "rows": {
-                    "for": {
-                        "in": "Rows"
-                    }
-                },
-                "columns": {
-                    "for": {
-                        "in": "Columns"
-                    }
-                },
-                "values": {
-                    "select": [
-                        {
-                            "for": {
-                                "in": "Value"
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-    ],
-    "objects": {
-        "subTotals": {
-            "displayName": "Subtotals",
-            "properties": {
-                "rowSubtotals": {
-                    "type": {
-                        "bool": true
-                    },
-                    "displayName": "Row subtotals",
-                    "description": "Show subtotals for all row groups",
-                    "suppressFormatPainterCopy": true
-                },
-                "perRowLevel": {
-                    "displayName": "Per row level",
-                    "type": {
-                        "bool": true
-                    },
-                    "suppressFormatPainterCopy": true
-                },
-                "columnSubtotals": {
-                    "type": {
-                        "bool": true
-                    },
-                    "displayName": "Column subtotals",
-                    "description": "Show subtotals for all column groups",
-                    "suppressFormatPainterCopy": true
-                },
-                "perColumnLevel": {
-                    "displayName": "Per column level",
-                    "type": {
-                        "bool": true
-                    },
-                    "suppressFormatPainterCopy": true
-                },
-                "levelSubtotalEnabled": {
-                    "type": {
-                        "bool": true
-                    }
-                }
-            }
-        }
-    },
-    "subtotals": {
-        "matrix": {
-            "rowSubtotals": {
-                "propertyIdentifier": {
-                    "objectName": "subTotals",
-                    "propertyName": "rowSubtotals"
-                },
-                "defaultValue": true
-            },
-            "rowSubtotalsPerLevel": {
-                "propertyIdentifier": {
-                    "objectName": "subTotals",
-                    "propertyName": "perRowLevel"
-                },
-                "defaultValue": false
-            },
-            "columnSubtotals": {
-                "propertyIdentifier": {
-                    "objectName": "subTotals",
-                    "propertyName": "columnSubtotals"
-                },
-                "defaultValue": true
-            },
-            "columnSubtotalsPerLevel": {
-                "propertyIdentifier": {
-                    "objectName": "subTotals",
-                    "propertyName": "perColumnLevel"
-                },
-                "defaultValue": false
-            },
-            "levelSubtotalEnabled": {
-                "propertyIdentifier": {
-                    "objectName": "subTotals",
-                    "propertyName": "levelSubtotalEnabled"
-                },
-                "defaultValue": true
-            }
-        }
+  "privileges": [
+    {
+      "name": "WebAccess",
+      "essential": true,
+      "parameters": ["https://code-spaces.dna-prod.app.corpintra.net"]
     }
+  ],
+  "dataRoles": [
+    {
+      "name": "Rows",
+      "displayName": "Rows",
+      "displayNameKey": "Visual_Rows",
+      "kind": "Grouping"
+    },
+    {
+      "name": "Columns",
+      "displayName": "Columns",
+      "displayNameKey": "Visual_Columns",
+      "kind": "Grouping"
+    },
+    {
+      "name": "Value",
+      "displayName": "Value",
+      "displayNameKey": "Visual_Values",
+      "kind": "Measure"
+    }
+  ],
+  "dataViewMappings": [
+    {
+      "matrix": {
+        "rows": { "for": { "in": "Rows" } },
+        "columns": { "for": { "in": "Columns" } },
+        "values": { "select": [{ "for": { "in": "Value" } }] }
+      }
+    }
+  ],
+  "objects": {
+    "visualSettings": {
+      "displayName": "Visual Settings",
+      "properties": {
+        "commentApiUrl": {
+          "type": { "text": true },
+          "displayName": "Comment API URL"
+        },
+        "redBarThreshold": {
+          "type": { "numeric": true },
+          "displayName": "Red Bar Threshold"
+        },
+        "redBarColumnsIndex": {
+          "type": { "text": true },
+          "displayName": "Red Bar Columns (0-based, comma-separated) eg: 0,1,2"
+        }
+      }
+    },
+    "gridSettings": {
+      "displayName": "Grid Settings",
+      "properties": {
+        "showGrid": { "type": { "bool": true }, "displayName": "Show grid" },
+        "rowFontSize": {
+          "type": { "numeric": true },
+          "displayName": "Row Font Size"
+        },
+        "columnFontSize": {
+          "type": { "numeric": true },
+          "displayName": "Column Font Size"
+        }
+      }
+    },
+    "subTotals": {
+      "displayName": "Subtotals",
+      "properties": {
+        "rowSubtotals": {
+          "type": { "bool": true },
+          "displayName": "Row subtotals",
+          "description": "Show subtotals for all row groups",
+          "suppressFormatPainterCopy": true
+        },
+        "perRowLevel": {
+          "displayName": "Per row level",
+          "type": { "bool": true },
+          "suppressFormatPainterCopy": true
+        },
+        "columnSubtotals": {
+          "type": { "bool": true },
+          "displayName": "Column subtotals",
+          "description": "Show subtotals for all column groups",
+          "suppressFormatPainterCopy": true
+        },
+        "perColumnLevel": {
+          "displayName": "Per column level",
+          "type": { "bool": true },
+          "suppressFormatPainterCopy": true
+        },
+        "levelSubtotalEnabled": {
+          "type": { "bool": true }
+        }
+      }
+    },
+    "grid": {
+      "displayName": "Grid",
+      "properties": {
+        "outlineColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Outline Color"
+        },
+        "outlineWeight": {
+          "type": { "numeric": true },
+          "displayName": "Outline Weight"
+        }
+      }
+    },
+    "rowHeaders": {
+      "displayName": "Row headers",
+      "properties": {
+        "fontColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Font Color"
+        }
+      }
+    },
+    "columnHeaders": {
+      "displayName": "Column headers",
+      "properties": {
+        "fontColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Font Color"
+        }
+      }
+    },
+    "values": {
+      "displayName": "Values",
+      "properties": {
+        "fontSize": {
+          "type": { "numeric": true },
+          "displayName": "Font Size"
+        },
+        "fontColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Font Color"
+        },
+        "backgroundColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Background Color"
+        }
+      }
+    },
+    "commentSettings": {
+      "displayName": "Comments",
+      "properties": {
+        "enableComments": {
+          "type": { "bool": true },
+          "displayName": "Enable Comments"
+        }
+      }
+    },
+    "cellBorders": {
+      "displayName": "Cell Borders",
+      "properties": {
+        "borderColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Border Color"
+        },
+        "borderWidth": {
+          "type": { "numeric": true },
+          "displayName": "Border Width"
+        }
+      }
+    },
+    "rowBackground": {
+      "displayName": "Row Background",
+      "properties": {
+        "rowAltColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Alternate Row Color"
+        },
+        "rowEvenColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Even Row Color"
+        }
+      }
+    },
+    "fontSettings": {
+      "displayName": "Font Settings",
+      "properties": {
+        "fontFamily": {
+          "type": { "text": true },
+          "displayName": "Font Family"
+        },
+        "fontWeight": {
+          "type": { "text": true },
+          "displayName": "Font Weight"
+        },
+        "fontStyle": {
+          "type": { "text": true },
+          "displayName": "Font Style"
+        }
+      }
+    },
+    "gridLines": {
+      "displayName": "Grid Lines",
+      "properties": {
+        "showHorizontal": {
+          "type": { "bool": true },
+          "displayName": "Show Horizontal Lines"
+        },
+        "showVertical": {
+          "type": { "bool": true },
+          "displayName": "Show Vertical Lines"
+        },
+        "gridColor": {
+          "type": { "fill": { "solid": { "color": true } } },
+          "displayName": "Grid Line Color"
+        }
+      }
+    }
+  },
+  "subtotals": {
+    "matrix": {
+      "rowSubtotals": {
+        "propertyIdentifier": {
+          "objectName": "subTotals",
+          "propertyName": "rowSubtotals"
+        },
+        "defaultValue": true
+      },
+      "rowSubtotalsPerLevel": {
+        "propertyIdentifier": {
+          "objectName": "subTotals",
+          "propertyName": "perRowLevel"
+        },
+        "defaultValue": false
+      },
+      "columnSubtotals": {
+        "propertyIdentifier": {
+          "objectName": "subTotals",
+          "propertyName": "columnSubtotals"
+        },
+        "defaultValue": true
+      },
+      "columnSubtotalsPerLevel": {
+        "propertyIdentifier": {
+          "objectName": "subTotals",
+          "propertyName": "perColumnLevel"
+        },
+        "defaultValue": false
+      },
+      "levelSubtotalEnabled": {
+        "propertyIdentifier": {
+          "objectName": "subTotals",
+          "propertyName": "levelSubtotalEnabled"
+        },
+        "defaultValue": true
+      }
+    }
+  }
 }

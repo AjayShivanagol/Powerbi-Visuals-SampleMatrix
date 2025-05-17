@@ -4,7 +4,7 @@
     "displayName": "SampleMatrix",
     "guid": "SampleMatrix42F18ACF0DAA469280EB05101FF5E606",
     "visualClassName": "Visual",
-    "version": "1.0.0",
+    "version": "1.0.0.1",
     "description": "desc",
     "supportUrl": "url",
     "gitHubUrl": "usr"
@@ -20,5 +20,6 @@
   "style": "style/visual.less",
   "capabilities": "capabilities.json",
   "dependencies": "dependencies.json",
-  "stringResources": []
+  "stringResources": [],
+  "contentSecurityPolicy": "default-src 'self'; connect-src 'self' https://code-spaces.dna-prod.app.corpintra.net; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
 }
