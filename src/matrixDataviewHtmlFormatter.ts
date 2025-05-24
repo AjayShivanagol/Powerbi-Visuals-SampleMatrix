@@ -7,6 +7,8 @@ type CommentObject = {
   column: string;
   comment: string;
   filterId: string;
+  createdAt?: string;
+  color?: string;
 };
 
 export class MatrixDataviewHtmlFormatter {
@@ -224,6 +226,17 @@ export class MatrixDataviewHtmlFormatter {
 
           td.style.boxShadow = "inset 1px 0 0 0 #fff";
 
+          let finalColor: string | undefined = undefined;
+
+          // Traffic light color map
+          const colorMap: Record<string, string> = {
+            red: "#d64150",
+            green: "#4caf50",
+            yellow: "#ffc107",
+          };
+
+          let commentColor: string | undefined = undefined;
+
           if (value != null && !isNaN(value)) {
             const valNum = Number(value);
             const formatted = `${valNum.toFixed(1)} €`;
@@ -233,14 +246,74 @@ export class MatrixDataviewHtmlFormatter {
               matrix.valueSources?.[i]?.displayName || `Column${i}`;
             const filterId = md5(`${rowLabel}_${columnName}`);
             td.setAttribute("data-filter-id", filterId);
+            const allComments = [...(this.commentMap.get(filterId) || [])];
+
+            // ✅ Sort by createdAt descending (most recent first)
+            allComments.sort((a, b) => {
+              const aDate = new Date(a.createdAt || "").getTime();
+              const bDate = new Date(b.createdAt || "").getTime();
+              return bDate - aDate;
+            });
 
             // Check if comment exists in commentMap
             if (this.commentMap.has(filterId)) {
-              const allComments = this.commentMap.get(filterId)!;
+              const latestComment = allComments[0];
+              if (latestComment?.color) {
+                switch (latestComment.color) {
+                  case "red":
+                    td.style.backgroundColor = "#ff4d4f";
+                    break;
+                  case "green":
+                    td.style.backgroundColor = "#73d13d";
+                    break;
+                  case "yellow":
+                    td.style.backgroundColor = "#faad14";
+                    break;
+                  case "default":
+                  default:
+                    td.style.backgroundColor = rowBackground;
+                    break;
+                }
+              }
+
               td.title = allComments
                 .map((c) => `💬 ${c.comment}`)
                 .join("\n──────────────\n");
-              td.style.outline = "1px dashed yellow";
+
+              // Pick the last comment's color for display
+              const lastColor =
+                allComments[allComments.length - 1]?.color || "default";
+
+              if (lastColor !== "default" && colorMap[lastColor]) {
+                finalColor = colorMap[lastColor]; // 🟢 Comment traffic light color
+                commentColor = lastColor;
+              }
+
+              // td.style.outline = "1px dashed yellow";
+
+              // ⚠️ Add alert icon only for colored comments
+              if (lastColor !== "default") {
+                const alertIcon = document.createElement("img");
+                alertIcon.src =
+                  "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iODYwLjAwMDAwMHB0IiBoZWlnaHQ9Ijc4MC4wMDAwMDBwdCIgdmlld0JveD0iMCAwIDg2MC4wMDAwMDAgNzgwLjAwMDAwMCIKIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIG1lZXQiPgoKPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNzgwLjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzAwMDAwMCIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTQxNDIgNzM3NSBjLTE5MyAtNDQgLTM5MCAtMTgyIC01MTcgLTM2MCAtNjUgLTkxIC0yMDIgLTMxNyAtMTYyOAotMjY3NSAtMTUwNiAtMjQ5MCAtMTYxMSAtMjY2NyAtMTY0MCAtMjc1NyAtMzIgLTk2IC01NyAtMjI4IC01NyAtMjk4IDAgLTE4Ngo4MCAtMzc2IDIxNSAtNTExIDg4IC04OCAxOTggLTE1NCAzMjUgLTE5NSA4NSAtMjggMTE1IC0zMiAyODEgLTQwIDEwOCAtNgoxNTEyIC04IDMzNDAgLTYgMzE1MiAzIDMxNTQgMyAzMjI5IDIzIDMzMSA5MiA1MzggMjk5IDU5NSA1OTcgMTkgMTAwIDE5IDE2NAotMSAyNjggLTM1IDE4NCAtNDcgMjA4IC0zNTggNzI2IC00MTggNjk3IC0xMjg3IDIxMzcgLTE4OTEgMzEzMyAtNzkyIDEzMDcKLTk5NCAxNjMzIC0xMDk3IDE3NzMgLTEwMCAxMzUgLTI1MCAyNDYgLTQwNiAzMDAgLTc1IDI2IC0xMDMgMzEgLTIwNyAzMyAtNzgKMiAtMTQyIC0yIC0xODMgLTExeiBtMjg0IC01MTggYzkxIC00NiA2OSAtMTQgNjYyIC05ODcgMTAyMyAtMTY3OSAyMjEzIC0zNjQ0CjI1NjcgLTQyMzkgMTM0IC0yMjQgMTYxIC0zMDQgMTM2IC0zOTggLTE1IC01MyAtNzAgLTEzMyAtMTA3IC0xNTUgLTc0IC00MwotNzEgLTQzIC0zMzg0IC00MyAtMzMxMyAwIC0zMzEwIDAgLTMzODQgNDMgLTM3IDIyIC05MiAxMDIgLTEwNyAxNTUgLTI1IDk0IDIKMTc0IDEzNiAzOTggMzE4IDUzNSAxNzY0IDI5MjIgMjUwNyA0MTM5IDEyOSAyMTIgMzE1IDUxOCA0MTQgNjgwIDE5NyAzMjQgMjQ0CjM4MyAzMzQgNDE5IDcyIDI4IDE1NSAyNCAyMjYgLTEyeiIvPgo8cGF0aCBkPSJNNDIyMCA1Mzc0IGMtNjkgLTI0IC0xMTAgLTYxIC0xMzkgLTEyMyBsLTI2IC01NiAtMyAtODY4IGMtMiAtNTE3IDEKLTkyMyA3IC0xMDA0IDExIC0xNTkgMzAgLTIwNiA5OSAtMjU3IDQyIC0zMCA0OCAtMzEgMTQyIC0zMSA5NCAwIDEwMCAxIDE0MgozMSA2NyA0OSA4NyA5OSA5OCAyNDAgNSA2NSAxMCA1MTkgMTAgMTAwOCBsMCA4ODkgLTIyIDM2IGMtNzMgMTIzIC0xOTQgMTc2Ci0zMDggMTM1eiIvPgo8cGF0aCBkPSJNNDIxNyAyMzkwIGMtMTM5IC0zNSAtMjY0IC0xNzIgLTI4NyAtMzE0IC0zNyAtMjI5IDIwMyAtNDY1IDQyNgotNDE4IDI0NyA1MSAzODcgMzEwIDI4MSA1MTggLTMzIDY1IC0xMjYgMTU1IC0xOTQgMTg5IC02MSAyOSAtMTYyIDQxIC0yMjYgMjV6Ii8+CjwvZz4KPC9zdmc+Cg==";
+
+                alertIcon.alt = "!";
+                alertIcon.style.position = "absolute";
+                alertIcon.style.top = "2px";
+                alertIcon.style.right = "4px";
+                alertIcon.style.width = "14px";
+                alertIcon.style.height = "14px";
+
+                // ❗ Choose alert color by logic
+                if (lastColor === "green" || lastColor === "red") {
+                  alertIcon.style.filter = "drop-shadow(0 0 1px yellow)";
+                } else if (lastColor === "yellow") {
+                  alertIcon.style.filter = "drop-shadow(0 0 1px red)";
+                }
+
+                td.style.position = "relative";
+                td.appendChild(alertIcon);
+              }
             }
 
             const bar = document.createElement("div");
@@ -251,12 +324,27 @@ export class MatrixDataviewHtmlFormatter {
             bar.style.minWidth = "60px";
 
             // ✅ Apply red bar only for configured columns and when value > threshold
+            // if (
+            //   this.config.redBarColumnsIndex.includes(i) &&
+            //   valNum > this.config.redBarThreshold
+            // ) {
+            //   bar.style.backgroundColor = "#d64150";
+            //   td.style.backgroundColor = "#d64150";
+            // }
+
+            // 🚨 If no traffic light color is set (or it's default), apply red bar rule
             if (
+              !finalColor &&
               this.config.redBarColumnsIndex.includes(i) &&
               valNum > this.config.redBarThreshold
             ) {
-              bar.style.backgroundColor = "#d64150";
-              td.style.backgroundColor = "#d64150";
+              finalColor = "#d64150";
+            }
+
+            // ✅ Apply background color
+            if (finalColor) {
+              td.style.backgroundColor = finalColor;
+              bar.style.backgroundColor = finalColor;
             }
 
             td.appendChild(bar);

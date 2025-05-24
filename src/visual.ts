@@ -204,7 +204,7 @@ export class Visual implements IVisual {
     popup.style.padding = "16px";
     popup.style.border = "1px solid #aaa";
     popup.style.zIndex = "1000";
-    popup.style.width = "350px";
+    popup.style.width = "450px";
     popup.style.maxHeight = "400px";
     popup.style.overflowY = "auto";
     popup.style.borderRadius = "8px";
@@ -222,7 +222,10 @@ export class Visual implements IVisual {
       column: string;
       comment: string;
       filterId: string;
+      createdAt?: string;
+      color?: string;
     }[] = MatrixDataviewHtmlFormatter["commentMap"].get(filterId) || [];
+    const lastColor = comments[comments.length - 1]?.color || "default";
 
     const commentList = document.createElement("div");
     commentList.style.marginBottom = "10px";
@@ -230,15 +233,34 @@ export class Visual implements IVisual {
     comments.forEach((commentObj, index) => {
       const commentDiv = document.createElement("div");
       commentDiv.style.borderBottom = "1px solid #ccc";
-      commentDiv.style.padding = "6px 0";
+      commentDiv.style.padding = "10px 0";
       commentDiv.style.display = "flex";
-      commentDiv.style.justifyContent = "space-between";
-      commentDiv.style.alignItems = "center";
+      commentDiv.style.flexDirection = "column";
+      commentDiv.style.gap = "4px";
+
+      // Top Row: Text + Buttons
+      const topRow = document.createElement("div");
+      topRow.style.display = "flex";
+      topRow.style.justifyContent = "space-between";
+      topRow.style.alignItems = "flex-start";
 
       const commentContent = document.createElement("div");
       commentContent.textContent = commentObj.comment;
+      commentContent.style.whiteSpace = "pre-wrap"; // multiline
       commentContent.style.flex = "1";
-      commentContent.style.marginRight = "8px";
+
+      const iconContainer = document.createElement("div");
+      iconContainer.style.display = "flex";
+      iconContainer.style.gap = "10px";
+
+      const timestamp = document.createElement("div");
+      timestamp.style.fontSize = "8px";
+      timestamp.style.color = "#888";
+      timestamp.style.display = "flex";
+      timestamp.style.alignSelf = "flex-end";
+      timestamp.style.alignItems = "center";
+      timestamp.style.gap = "4px";
+      timestamp.style.marginLeft = "auto";
 
       const buttonRow = document.createElement("div");
       buttonRow.style.display = "flex";
@@ -263,11 +285,11 @@ export class Visual implements IVisual {
       const deleteBtn = document.createElement("img");
       deleteBtn.src =
         "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBVcGxvYWRlZCB0bzogU1ZHIFJlcG8sIHd3dy5zdmdyZXBvLmNvbSwgR2VuZXJhdG9yOiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIGZpbGw9IiMwMDAwMDAiIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgDQoJIHdpZHRoPSI4MDBweCIgaGVpZ2h0PSI4MDBweCIgdmlld0JveD0iMCAwIDQ4Mi40MjggNDgyLjQyOSINCgkgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTM4MS4xNjMsNTcuNzk5aC03NS4wOTRDMzAyLjMyMywyNS4zMTYsMjc0LjY4NiwwLDI0MS4yMTQsMGMtMzMuNDcxLDAtNjEuMTA0LDI1LjMxNS02NC44NSw1Ny43OTloLTc1LjA5OA0KCQkJYy0zMC4zOSwwLTU1LjExMSwyNC43MjgtNTUuMTExLDU1LjExN3YyLjgyOGMwLDIzLjIyMywxNC40Niw0My4xLDM0LjgzLDUxLjE5OXYyNjAuMzY5YzAsMzAuMzksMjQuNzI0LDU1LjExNyw1NS4xMTIsNTUuMTE3DQoJCQloMjEwLjIzNmMzMC4zODksMCw1NS4xMTEtMjQuNzI5LDU1LjExMS01NS4xMTdWMTY2Ljk0NGMyMC4zNjktOC4xLDM0LjgzLTI3Ljk3NywzNC44My01MS4xOTl2LTIuODI4DQoJCQlDNDM2LjI3NCw4Mi41MjcsNDExLjU1MSw1Ny43OTksMzgxLjE2Myw1Ny43OTl6IE0yNDEuMjE0LDI2LjEzOWMxOS4wMzcsMCwzNC45MjcsMTMuNjQ1LDM4LjQ0MywzMS42NmgtNzYuODc5DQoJCQlDMjA2LjI5MywzOS43ODMsMjIyLjE4NCwyNi4xMzksMjQxLjIxNCwyNi4xMzl6IE0zNzUuMzA1LDQyNy4zMTJjMCwxNS45NzgtMTMsMjguOTc5LTI4Ljk3MywyOC45NzlIMTM2LjA5Ng0KCQkJYy0xNS45NzMsMC0yOC45NzMtMTMuMDAyLTI4Ljk3My0yOC45NzlWMTcwLjg2MWgyNjguMTgyVjQyNy4zMTJ6IE00MTAuMTM1LDExNS43NDRjMCwxNS45NzgtMTMsMjguOTc5LTI4Ljk3MywyOC45NzlIMTAxLjI2Ng0KCQkJYy0xNS45NzMsMC0yOC45NzMtMTMuMDAxLTI4Ljk3My0yOC45Nzl2LTIuODI4YzAtMTUuOTc4LDEzLTI4Ljk3OSwyOC45NzMtMjguOTc5aDI3OS44OTdjMTUuOTczLDAsMjguOTczLDEzLjAwMSwyOC45NzMsMjguOTc5DQoJCQlWMTE1Ljc0NHoiLz4NCgkJPHBhdGggZD0iTTE3MS4xNDQsNDIyLjg2M2M3LjIxOCwwLDEzLjA2OS01Ljg1MywxMy4wNjktMTMuMDY4VjI2Mi42NDFjMC03LjIxNi01Ljg1Mi0xMy4wNy0xMy4wNjktMTMuMDcNCgkJCWMtNy4yMTcsMC0xMy4wNjksNS44NTQtMTMuMDY5LDEzLjA3djE0Ny4xNTRDMTU4LjA3NCw0MTcuMDEyLDE2My45MjYsNDIyLjg2MywxNzEuMTQ0LDQyMi44NjN6Ii8+DQoJCTxwYXRoIGQ9Ik0yNDEuMjE0LDQyMi44NjNjNy4yMTgsMCwxMy4wNy01Ljg1MywxMy4wNy0xMy4wNjhWMjYyLjY0MWMwLTcuMjE2LTUuODU0LTEzLjA3LTEzLjA3LTEzLjA3DQoJCQljLTcuMjE3LDAtMTMuMDY5LDUuODU0LTEzLjA2OSwxMy4wN3YxNDcuMTU0QzIyOC4xNDUsNDE3LjAxMiwyMzMuOTk2LDQyMi44NjMsMjQxLjIxNCw0MjIuODYzeiIvPg0KCQk8cGF0aCBkPSJNMzExLjI4NCw0MjIuODYzYzcuMjE3LDAsMTMuMDY4LTUuODUzLDEzLjA2OC0xMy4wNjhWMjYyLjY0MWMwLTcuMjE2LTUuODUyLTEzLjA3LTEzLjA2OC0xMy4wNw0KCQkJYy03LjIxOSwwLTEzLjA3LDUuODU0LTEzLjA3LDEzLjA3djE0Ny4xNTRDMjk4LjIxMyw0MTcuMDEyLDMwNC4wNjcsNDIyLjg2MywzMTEuMjg0LDQyMi44NjN6Ii8+DQoJPC9nPg0KPC9nPg0KPC9zdmc+";
+      deleteBtn.alt = "Delete";
       deleteBtn.title = "Delete";
       deleteBtn.style.width = "16px";
       deleteBtn.style.height = "16px";
       deleteBtn.style.cursor = "pointer";
-      deleteBtn.style.fontSize = "16px";
       deleteBtn.onclick = () => {
         fetch(
           `${MatrixDataviewHtmlFormatter.config.commentApiUrl}/${filterId}`,
@@ -282,15 +304,87 @@ export class Visual implements IVisual {
         this.target.removeChild(popup);
       };
 
-      buttonRow.appendChild(editBtn);
-      buttonRow.appendChild(deleteBtn);
+      iconContainer.appendChild(editBtn);
+      iconContainer.appendChild(deleteBtn);
 
-      commentDiv.appendChild(commentContent);
-      commentDiv.appendChild(buttonRow);
+      topRow.appendChild(commentContent);
+      topRow.appendChild(iconContainer);
+      commentDiv.appendChild(topRow);
+
+      if (commentObj.createdAt) {
+        const time = new Date(commentObj.createdAt);
+        const formattedDate = `${String(time.getDate()).padStart(
+          2,
+          "0"
+        )}-${time.toLocaleString("default", {
+          month: "short",
+        })}-${time.getFullYear()} ${String(time.getHours()).padStart(
+          2,
+          "0"
+        )}:${String(time.getMinutes()).padStart(2, "0")}`;
+
+        const timestamp = document.createElement("div");
+        timestamp.style.fontSize = "11px";
+        timestamp.style.color = "#888";
+        timestamp.style.display = "flex";
+        timestamp.style.alignSelf = "flex-end";
+        timestamp.style.alignItems = "center";
+        timestamp.style.gap = "4px";
+
+        const clockIcon = document.createElement("span");
+        clockIcon.textContent = "🕒";
+        const timeSpan = document.createElement("span");
+        timeSpan.textContent = formattedDate;
+
+        timestamp.appendChild(clockIcon);
+        timestamp.appendChild(timeSpan);
+        commentDiv.appendChild(timestamp);
+      }
       commentList.appendChild(commentDiv);
     });
 
     popup.appendChild(commentList);
+
+    // Color selection UI
+    // 🔴🟢🟡 Color selection UI (Traffic Lights)
+    const colorTitle = document.createElement("div");
+    colorTitle.textContent = "Traffic Light Color:";
+    colorTitle.style.fontWeight = "bold";
+    colorTitle.style.marginBottom = "6px";
+    popup.appendChild(colorTitle);
+
+    const colorContainer = document.createElement("div");
+    colorContainer.style.display = "flex";
+    colorContainer.style.gap = "12px";
+    colorContainer.style.marginBottom = "12px";
+
+    // Map of color name to emoji or label for visual hint
+    const colorOptions = [
+      { value: "default", label: "Default" },
+      { value: "red", label: "Red" },
+      { value: "green", label: "Green" },
+      { value: "yellow", label: "Yellow" },
+    ];
+
+    colorOptions.forEach(({ value, label }) => {
+      const wrapper = document.createElement("label");
+      wrapper.style.display = "flex";
+      wrapper.style.alignItems = "center";
+      wrapper.style.gap = "4px";
+      wrapper.style.fontSize = "13px";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "commentColor";
+      input.value = value;
+      if (value === lastColor) input.checked = true;
+
+      wrapper.appendChild(input);
+      wrapper.appendChild(document.createTextNode(label));
+      colorContainer.appendChild(wrapper);
+    });
+
+    popup.appendChild(colorContainer);
 
     // Textarea for new or edited comment
     const textarea = document.createElement("textarea");
@@ -303,9 +397,22 @@ export class Visual implements IVisual {
     // Submit and Cancel buttons
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
+    submitBtn.style.marginRight = "8px";
+    submitBtn.style.background = "#0078d4";
+    submitBtn.style.color = "#fff";
+    submitBtn.style.border = "none";
+    submitBtn.style.padding = "6px 12px";
+    submitBtn.style.borderRadius = "4px";
+    submitBtn.style.cursor = "pointer";
     popup.appendChild(submitBtn);
 
     const cancelBtn = document.createElement("button");
+    cancelBtn.style.background = "#f3f3f3";
+    cancelBtn.style.color = "#333";
+    cancelBtn.style.border = "1px solid #ccc";
+    cancelBtn.style.padding = "6px 12px";
+    cancelBtn.style.borderRadius = "4px";
+    cancelBtn.style.cursor = "pointer";
     cancelBtn.textContent = "Cancel";
     popup.appendChild(cancelBtn);
 
@@ -315,16 +422,38 @@ export class Visual implements IVisual {
 
     submitBtn.onclick = () => {
       const commentText = textarea.value.trim();
-      if (!commentText) return;
+      const selectedColor =
+        (
+          popup.querySelector(
+            'input[name="commentColor"]:checked'
+          ) as HTMLInputElement
+        )?.value ?? "default";
 
       const editIndex = textarea.dataset.editIndex;
-      if (editIndex !== undefined) {
+      const isEdit = editIndex !== undefined;
+
+      const previousColor = comments[comments.length - 1]?.color ?? "default";
+      const isColorChanged = selectedColor !== previousColor;
+
+      // 🔒 Prevent saving if no comment and no color change
+      if (!commentText && !isColorChanged) return;
+
+      if (isEdit) {
         const index = parseInt(editIndex, 10);
         const existingComment = comments[index];
         const commentId = existingComment.id;
 
+        const selectedColor =
+          (
+            popup.querySelector(
+              'input[name="commentColor"]:checked'
+            ) as HTMLInputElement
+          )?.value ?? "default";
+
         const updatedComment = {
           comment: commentText,
+          createdAt: new Date().toISOString(),
+          color: selectedColor,
         };
 
         fetch(
@@ -339,12 +468,21 @@ export class Visual implements IVisual {
           .then(() => this.refreshCommentsAndRedraw())
           .catch((err) => console.error("Failed to update comment", err));
       } else {
+        const selectedColor =
+          (
+            popup.querySelector(
+              'input[name="commentColor"]:checked'
+            ) as HTMLInputElement
+          )?.value ?? "default";
+
         const commentData = {
           id: this.generateUUID(),
           user: "User",
           comment: commentText,
           column: columnHeaderText,
           filterId: filterId,
+          createdAt: new Date().toISOString(),
+          color: selectedColor,
         };
 
         fetch(MatrixDataviewHtmlFormatter.config.commentApiUrl, {
