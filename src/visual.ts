@@ -217,20 +217,36 @@ export class Visual implements IVisual {
     popup.appendChild(headerDiv);
 
     // Comments list
-    const comments: {
+    const allComments: {
       id: string;
       column: string;
       comment: string;
       filterId: string;
       createdAt?: string;
+      modifiedAt?: string;
       color?: string;
     }[] = MatrixDataviewHtmlFormatter["commentMap"].get(filterId) || [];
-    const lastColor = comments[comments.length - 1]?.color || "default";
+
+    // Sort all Comments by createdAt descending (most recent first)
+    allComments.sort((a, b) => {
+      const aDate = new Date(a.createdAt || "").getTime();
+      const bDate = new Date(b.createdAt || "").getTime();
+      return aDate - bDate; // Sorts ascending
+    });
+
+    const lastColor =
+      allComments.length > 0
+        ? allComments[allComments.length - 1]?.color || "default"
+        : "default";
+    console.log("lastColor", lastColor);
 
     const commentList = document.createElement("div");
     commentList.style.marginBottom = "10px";
 
-    comments.forEach((commentObj, index) => {
+    // 4) filter out empties for display
+    const displayComments = allComments.filter((c) => c.comment.trim() !== "");
+
+    displayComments.forEach((commentObj, index) => {
       const commentDiv = document.createElement("div");
       commentDiv.style.borderBottom = "1px solid #ccc";
       commentDiv.style.padding = "10px 0";
@@ -432,7 +448,8 @@ export class Visual implements IVisual {
       const editIndex = textarea.dataset.editIndex;
       const isEdit = editIndex !== undefined;
 
-      const previousColor = comments[comments.length - 1]?.color ?? "default";
+      const previousColor =
+        allComments[allComments.length - 1]?.color ?? "default";
       const isColorChanged = selectedColor !== previousColor;
 
       // 🔒 Prevent saving if no comment and no color change
@@ -440,7 +457,7 @@ export class Visual implements IVisual {
 
       if (isEdit) {
         const index = parseInt(editIndex, 10);
-        const existingComment = comments[index];
+        const existingComment = allComments[index];
         const commentId = existingComment.id;
 
         const selectedColor =
@@ -452,7 +469,7 @@ export class Visual implements IVisual {
 
         const updatedComment = {
           comment: commentText,
-          createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
           color: selectedColor,
         };
 
@@ -482,6 +499,7 @@ export class Visual implements IVisual {
           column: columnHeaderText,
           filterId: filterId,
           createdAt: new Date().toISOString(),
+          modifiedAt: new Date().toISOString(),
           color: selectedColor,
         };
 

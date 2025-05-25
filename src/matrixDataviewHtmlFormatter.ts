@@ -8,6 +8,7 @@ type CommentObject = {
   comment: string;
   filterId: string;
   createdAt?: string;
+  modifiedAt?: string;
   color?: string;
 };
 
@@ -281,8 +282,7 @@ export class MatrixDataviewHtmlFormatter {
                 .join("\n──────────────\n");
 
               // Pick the last comment's color for display
-              const lastColor =
-                allComments[allComments.length - 1]?.color || "default";
+              const lastColor = allComments[0]?.color || "default";
 
               if (lastColor !== "default" && colorMap[lastColor]) {
                 finalColor = colorMap[lastColor]; // 🟢 Comment traffic light color
@@ -291,8 +291,11 @@ export class MatrixDataviewHtmlFormatter {
 
               // td.style.outline = "1px dashed yellow";
 
-              // ⚠️ Add alert icon only for colored comments
-              if (lastColor !== "default") {
+              // ⚠️ Add alert icon only if there’s at least one non-empty comment
+              const hasNonEmptyComment = allComments.some(
+                (c) => c.comment.trim() !== ""
+              );
+              if (hasNonEmptyComment) {
                 const alertIcon = document.createElement("img");
                 alertIcon.src =
                   "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iODYwLjAwMDAwMHB0IiBoZWlnaHQ9Ijc4MC4wMDAwMDBwdCIgdmlld0JveD0iMCAwIDg2MC4wMDAwMDAgNzgwLjAwMDAwMCIKIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIG1lZXQiPgoKPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNzgwLjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iIzAwMDAwMCIgc3Ryb2tlPSJub25lIj4KPHBhdGggZD0iTTQxNDIgNzM3NSBjLTE5MyAtNDQgLTM5MCAtMTgyIC01MTcgLTM2MCAtNjUgLTkxIC0yMDIgLTMxNyAtMTYyOAotMjY3NSAtMTUwNiAtMjQ5MCAtMTYxMSAtMjY2NyAtMTY0MCAtMjc1NyAtMzIgLTk2IC01NyAtMjI4IC01NyAtMjk4IDAgLTE4Ngo4MCAtMzc2IDIxNSAtNTExIDg4IC04OCAxOTggLTE1NCAzMjUgLTE5NSA4NSAtMjggMTE1IC0zMiAyODEgLTQwIDEwOCAtNgoxNTEyIC04IDMzNDAgLTYgMzE1MiAzIDMxNTQgMyAzMjI5IDIzIDMzMSA5MiA1MzggMjk5IDU5NSA1OTcgMTkgMTAwIDE5IDE2NAotMSAyNjggLTM1IDE4NCAtNDcgMjA4IC0zNTggNzI2IC00MTggNjk3IC0xMjg3IDIxMzcgLTE4OTEgMzEzMyAtNzkyIDEzMDcKLTk5NCAxNjMzIC0xMDk3IDE3NzMgLTEwMCAxMzUgLTI1MCAyNDYgLTQwNiAzMDAgLTc1IDI2IC0xMDMgMzEgLTIwNyAzMyAtNzgKMiAtMTQyIC0yIC0xODMgLTExeiBtMjg0IC01MTggYzkxIC00NiA2OSAtMTQgNjYyIC05ODcgMTAyMyAtMTY3OSAyMjEzIC0zNjQ0CjI1NjcgLTQyMzkgMTM0IC0yMjQgMTYxIC0zMDQgMTM2IC0zOTggLTE1IC01MyAtNzAgLTEzMyAtMTA3IC0xNTUgLTc0IC00MwotNzEgLTQzIC0zMzg0IC00MyAtMzMxMyAwIC0zMzEwIDAgLTMzODQgNDMgLTM3IDIyIC05MiAxMDIgLTEwNyAxNTUgLTI1IDk0IDIKMTc0IDEzNiAzOTggMzE4IDUzNSAxNzY0IDI5MjIgMjUwNyA0MTM5IDEyOSAyMTIgMzE1IDUxOCA0MTQgNjgwIDE5NyAzMjQgMjQ0CjM4MyAzMzQgNDE5IDcyIDI4IDE1NSAyNCAyMjYgLTEyeiIvPgo8cGF0aCBkPSJNNDIyMCA1Mzc0IGMtNjkgLTI0IC0xMTAgLTYxIC0xMzkgLTEyMyBsLTI2IC01NiAtMyAtODY4IGMtMiAtNTE3IDEKLTkyMyA3IC0xMDA0IDExIC0xNTkgMzAgLTIwNiA5OSAtMjU3IDQyIC0zMCA0OCAtMzEgMTQyIC0zMSA5NCAwIDEwMCAxIDE0MgozMSA2NyA0OSA4NyA5OSA5OCAyNDAgNSA2NSAxMCA1MTkgMTAgMTAwOCBsMCA4ODkgLTIyIDM2IGMtNzMgMTIzIC0xOTQgMTc2Ci0zMDggMTM1eiIvPgo8cGF0aCBkPSJNNDIxNyAyMzkwIGMtMTM5IC0zNSAtMjY0IC0xNzIgLTI4NyAtMzE0IC0zNyAtMjI5IDIwMyAtNDY1IDQyNgotNDE4IDI0NyA1MSAzODcgMzEwIDI4MSA1MTggLTMzIDY1IC0xMjYgMTU1IC0xOTQgMTg5IC02MSAyOSAtMTYyIDQxIC0yMjYgMjV6Ii8+CjwvZz4KPC9zdmc+Cg==";
