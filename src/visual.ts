@@ -15,10 +15,13 @@ import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnume
 import DataViewObjects = powerbi.DataViewObjects;
 import DataViewObject = powerbi.DataViewObject;
 import DataViewHierarchyLevel = powerbi.DataViewHierarchyLevel;
+import DataViewMatrixNodeValue = powerbi.DataViewMatrixNodeValue;
+
 export class Visual implements IVisual {
   private target: HTMLElement;
   private dataView: DataView;
   private refreshInterval: number | undefined;
+  private upnValue: string = "";
 
   constructor(options: VisualConstructorOptions) {
     console.log("Visual constructor", options);
@@ -71,6 +74,23 @@ export class Visual implements IVisual {
     if (!options) {
       return;
     }
+
+    const matrix = options.dataViews![0].matrix;
+    const upnIdx = matrix.valueSources.findIndex(
+      (vs) => vs.roles?.UserPrincipalName
+    );
+
+    // pull out both the cell’s raw value and its column‐index “key”
+    const upnNode = matrix.rows.root.children[0].values[
+      upnIdx
+    ] as DataViewMatrixNodeValue;
+    const { value: rawUpn = "", valueSourceIndex: key } = upnNode;
+
+    // coerce to string so we can call .split()
+    const rawUpnStr = String(rawUpn);
+    this.upnValue = rawUpnStr.split("@")[0].toUpperCase();
+
+    console.log("UPN:", this.upnValue, "key:", key);
 
     if (options.type & powerbi.VisualUpdateType.Data) {
       if (
@@ -219,6 +239,7 @@ export class Visual implements IVisual {
     // Comments list
     const allComments: {
       id: string;
+      user: string;
       column: string;
       comment: string;
       filterId: string;
@@ -248,21 +269,42 @@ export class Visual implements IVisual {
 
     displayComments.forEach((commentObj, index) => {
       const commentDiv = document.createElement("div");
-      commentDiv.style.borderBottom = "1px solid #ccc";
-      commentDiv.style.padding = "10px 0";
       commentDiv.style.display = "flex";
       commentDiv.style.flexDirection = "column";
       commentDiv.style.gap = "4px";
+      commentDiv.style.padding = "10px 0";
+      commentDiv.style.borderBottom = "1px solid #ccc";
 
-      // Top Row: Text + Buttons
       const topRow = document.createElement("div");
       topRow.style.display = "flex";
-      topRow.style.justifyContent = "space-between";
-      topRow.style.alignItems = "flex-start";
+      topRow.style.alignItems = "center"; // center‐vertically
+      topRow.style.gap = "8px";
+
+      // --- NEW: show the commenting user ---
+      const avatar = document.createElement("div");
+      const initials = commentObj.user
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+      avatar.textContent = initials;
+      avatar.title = commentObj.user;
+      Object.assign(avatar.style, {
+        width: "32px",
+        height: "32px",
+        borderRadius: "50%",
+        backgroundColor: "#555",
+        color: "#fff",
+        fontSize: "14px",
+        textAlign: "center",
+        lineHeight: "32px",
+        userSelect: "none",
+      });
 
       const commentContent = document.createElement("div");
       commentContent.textContent = commentObj.comment;
-      commentContent.style.whiteSpace = "pre-wrap"; // multiline
+      commentContent.style.whiteSpace = "pre-wrap";
       commentContent.style.flex = "1";
 
       const iconContainer = document.createElement("div");
@@ -295,6 +337,7 @@ export class Visual implements IVisual {
       editBtn.onclick = () => {
         textarea.value = commentObj.comment;
         textarea.dataset.editIndex = index.toString();
+        textarea.dataset.commentId = commentObj.id;
       };
 
       // Delete icon (emoji or SVG)
@@ -320,9 +363,12 @@ export class Visual implements IVisual {
         this.target.removeChild(popup);
       };
 
-      iconContainer.appendChild(editBtn);
-      iconContainer.appendChild(deleteBtn);
-
+      // Only show edit/delete if the comment is by the current user
+      if (commentObj.user?.toUpperCase() === this.upnValue) {
+        iconContainer.appendChild(editBtn);
+        iconContainer.appendChild(deleteBtn);
+      }
+      topRow.appendChild(avatar);
       topRow.appendChild(commentContent);
       topRow.appendChild(iconContainer);
       commentDiv.appendChild(topRow);
@@ -434,6 +480,8 @@ export class Visual implements IVisual {
 
     cancelBtn.onclick = () => {
       if (popup.parentElement) this.target.removeChild(popup);
+      textarea.dataset.commentId = "";
+      textarea.dataset.editIndex = "";
     };
 
     submitBtn.onclick = () => {
@@ -446,7 +494,7 @@ export class Visual implements IVisual {
         )?.value ?? "default";
 
       const editIndex = textarea.dataset.editIndex;
-      const isEdit = editIndex !== undefined;
+      const isEdit = textarea.dataset.commentId !== undefined;
 
       const previousColor =
         allComments[allComments.length - 1]?.color ?? "default";
@@ -455,10 +503,17 @@ export class Visual implements IVisual {
       // 🔒 Prevent saving if no comment and no color change
       if (!commentText && !isColorChanged) return;
 
+      console.log(
+        "edit mode?",
+        isEdit,
+        "commentId:",
+        textarea.dataset.commentId
+      );
+
       if (isEdit) {
+        const commentId = textarea.dataset.commentId;
         const index = parseInt(editIndex, 10);
         const existingComment = allComments[index];
-        const commentId = existingComment.id;
 
         const selectedColor =
           (
@@ -471,6 +526,7 @@ export class Visual implements IVisual {
           comment: commentText,
           modifiedAt: new Date().toISOString(),
           color: selectedColor,
+          user: this.upnValue,
         };
 
         fetch(
@@ -494,7 +550,7 @@ export class Visual implements IVisual {
 
         const commentData = {
           id: this.generateUUID(),
-          user: "User",
+          user: this.upnValue,
           comment: commentText,
           column: columnHeaderText,
           filterId: filterId,
@@ -514,6 +570,8 @@ export class Visual implements IVisual {
       }
 
       this.target.removeChild(popup);
+      textarea.dataset.commentId = "";
+      textarea.dataset.editIndex = "";
     };
 
     // Append popup to the visual

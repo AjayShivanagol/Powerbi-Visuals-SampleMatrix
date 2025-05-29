@@ -24,6 +24,11 @@
       "displayName": "Value",
       "displayNameKey": "Visual_Values",
       "kind": "Measure"
+    },
+    {
+      "name": "UserPrincipalName",
+      "displayName": "User Principal Name",
+      "kind": "Measure"
     }
   ],
   "dataViewMappings": [
@@ -31,7 +36,12 @@
       "matrix": {
         "rows": { "for": { "in": "Rows" } },
         "columns": { "for": { "in": "Columns" } },
-        "values": { "select": [{ "for": { "in": "Value" } }] }
+        "values": {
+          "select": [
+            { "for": { "in": "Value" } },
+            { "for": { "in": "UserPrincipalName" } }
+          ]
+        }
       }
     }
   ],

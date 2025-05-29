@@ -5,6 +5,7 @@ import md5 from "md5";
 type CommentObject = {
   id: string;
   column: string;
+  user: string;
   comment: string;
   filterId: string;
   createdAt?: string;
@@ -13,6 +14,7 @@ type CommentObject = {
 };
 
 export class MatrixDataviewHtmlFormatter {
+  private static hiddenColIdx: number = -1;
   public static config = {
     redBarThreshold: 0,
     redBarColumnsIndex: [0, 2],
@@ -45,6 +47,10 @@ export class MatrixDataviewHtmlFormatter {
   public static formatDataViewMatrix(
     matrix: powerbi.DataViewMatrix
   ): HTMLElement {
+    const hiddenColIdx = matrix.valueSources.findIndex(
+      (vs) => vs.roles?.UserPrincipalName
+    );
+    MatrixDataviewHtmlFormatter.hiddenColIdx = hiddenColIdx;
     const htmlElement = document.createElement("div");
     htmlElement.classList.add("datagrid");
 
@@ -99,7 +105,9 @@ export class MatrixDataviewHtmlFormatter {
       trElement.appendChild(thCorner);
 
       // Each value field becomes a column header
-      matrix.valueSources?.forEach((vs) => {
+      matrix.valueSources?.forEach((vs, i) => {
+        // to skip UserPrincipalName coloumns
+        if (i === MatrixDataviewHtmlFormatter.hiddenColIdx) return;
         const thElement = document.createElement("th");
         thElement.textContent = vs.displayName;
         thElement.style.color = "#fff";
@@ -312,6 +320,8 @@ export class MatrixDataviewHtmlFormatter {
                   alertIcon.style.filter = "drop-shadow(0 0 1px yellow)";
                 } else if (lastColor === "yellow") {
                   alertIcon.style.filter = "drop-shadow(0 0 1px red)";
+                } else if (lastColor === "default") {
+                  alertIcon.style.filter = "drop-shadow(0 0 1px white)";
                 }
 
                 td.style.position = "relative";
