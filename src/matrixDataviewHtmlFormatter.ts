@@ -198,6 +198,30 @@ export class MatrixDataviewHtmlFormatter {
     topElement: HTMLElement,
     matrix: powerbi.DataViewMatrix
   ) {
+    // ─── A) Sort any children by leading numeric prefix (if present) ─────────
+    if (root.children && root.children.length > 1) {
+      root.children.sort((a, b) => {
+        const rawA = String(a.value || "").trim();
+        const rawB = String(b.value || "").trim();
+        const tokenA = rawA.split(" ")[0].replace(/[^0-9]/g, "");
+        const tokenB = rawB.split(" ")[0].replace(/[^0-9]/g, "");
+        const numA = parseInt(tokenA, 10);
+        const numB = parseInt(tokenB, 10);
+        const aIsNum = !isNaN(numA);
+        const bIsNum = !isNaN(numB);
+
+        if (aIsNum && bIsNum) {
+          if (numA !== numB) {
+            return numA - numB;
+          }
+        } else if (aIsNum && !bIsNum) {
+          return -1;
+        } else if (!aIsNum && bIsNum) {
+          return 1;
+        }
+        return rawA.localeCompare(rawB, undefined, { sensitivity: "base" });
+      });
+    }
     if (!(typeof root.level === "undefined" || root.level === null)) {
       const trElement = document.createElement("tr");
 
@@ -247,12 +271,19 @@ export class MatrixDataviewHtmlFormatter {
           let commentColor: string | undefined = undefined;
 
           if (value != null && !isNaN(value)) {
-            const valNum = Number(value);
-            const formatted = `${valNum.toFixed(1)} €`;
-
-            const rowLabel = String(root.value); // row name
             const columnName =
               matrix.valueSources?.[i]?.displayName || `Column${i}`;
+            let formatted: string;
+            const valNum = Number(value);
+            if (columnName === "Total Forecast") {
+              const rounded = Math.round(valNum);
+              formatted = rounded.toLocaleString();
+              formatted = `${formatted} €`;
+            } else {
+              formatted = `${valNum.toFixed(1)} €`;
+            }
+
+            const rowLabel = String(root.value); // row name
             const filterId = md5(`${rowLabel}_${columnName}`);
             td.setAttribute("data-filter-id", filterId);
             const allComments = [...(this.commentMap.get(filterId) || [])];
