@@ -4,15 +4,15 @@
     "displayName": "SampleMatrix",
     "guid": "SampleMatrix42F18ACF0DAA469280EB05101FF5E606",
     "visualClassName": "Visual",
-    "version": "1.0.0.1",
+    "version": "1.0.0.4",
     "description": "desc",
     "supportUrl": "url",
     "gitHubUrl": "usr"
   },
   "apiVersion": "4.7.0",
   "author": {
-    "name": "name",
-    "email": "a@b.c"
+    "name": "Ajay Shivanagol",
+    "email": "ajay.shivanagol@mercedes-benz.com"
   },
   "assets": {
     "icon": "assets/icon.png"
